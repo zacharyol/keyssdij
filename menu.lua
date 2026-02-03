@@ -192,9 +192,12 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- =========================
--- ANTI-TASER
+-- ANTI-TASER / ANTI-ARREST / ANTI-SHOOT
 -- =========================
 local antiTaser = false
+local antiArrest = false
+local antiShoot = false
+
 PrisonTab:CreateToggle({
     Name = "Anti-Taser",
     CurrentValue = false,
@@ -204,6 +207,7 @@ PrisonTab:CreateToggle({
 })
 
 RunService.Heartbeat:Connect(function()
+    -- Anti-Taser & Anti-Arrest: loop all players' backpacks (skip local player)
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= player then
             local pBackpack = plr:FindFirstChild("Backpack")
@@ -211,17 +215,35 @@ RunService.Heartbeat:Connect(function()
                 for _, tool in ipairs(pBackpack:GetChildren()) do
                     if antiTaser and tool.Name:lower():find("taser") then
                         tool:Destroy()
+                    elseif antiArrest and tool.Name:lower():find("handcuff") then
+                        tool:Destroy()
                     end
                 end
             end
         end
     end
 
-    -- Delete GunRemotes.PlayerTased if Anti-Taser enabled
+    -- Delete ReplicatedStorage.ClientArrested
+    if antiArrest then
+        local clientArrested = ReplicatedStorage:FindFirstChild("ClientArrested")
+        if clientArrested then
+            clientArrested:Destroy()
+        end
+    end
+
+    -- Delete GunRemotes.PlayerTased
     if antiTaser then
         local gunRemotes = ReplicatedStorage:FindFirstChild("GunRemotes")
         if gunRemotes and gunRemotes:FindFirstChild("PlayerTased") then
             gunRemotes.PlayerTased:Destroy()
+        end
+    end
+
+    -- Anti-Shoot: constantly remove ReplicatedStorage.GunRemotes.ReplicateEvent
+    if antiShoot then
+        local gunRemotes = ReplicatedStorage:FindFirstChild("GunRemotes")
+        if gunRemotes and gunRemotes:FindFirstChild("ReplicateEvent") then
+            gunRemotes.ReplicateEvent:Destroy()
         end
     end
 end)
