@@ -136,7 +136,7 @@ PrisonTab:CreateButton({
     end
 })
 
--- Grab All Items Button (prison_ITEMS.giver)
+-- Grab All Items Button (prison_ITEMS.giver) at your position
 PrisonTab:CreateButton({
     Name = "Grab All Items",
     Callback = function()
@@ -148,10 +148,23 @@ PrisonTab:CreateButton({
                     if item:IsA("Tool") then
                         item.Parent = backpack
                     elseif item:IsA("BasePart") then
-                        item.CFrame = root.CFrame + Vector3.new(0,3,0)
+                        local offset = Vector3.new(0,3,0)
+                        item.CFrame = root.CFrame + offset
+                    elseif item:IsA("Model") then
+                        if not item.PrimaryPart then
+                            for _, p in ipairs(item:GetDescendants()) do
+                                if p:IsA("BasePart") then
+                                    item.PrimaryPart = p
+                                    break
+                                end
+                            end
+                        end
+                        if item.PrimaryPart then
+                            item:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0,3,0))
+                        end
                     end
                 end
-                print("All items grabbed!")
+                print("All items grabbed at your position!")
             else
                 warn("giver folder not found in prison_ITEMS")
             end
