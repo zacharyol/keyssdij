@@ -31,7 +31,7 @@ local gunsFolder = toolsFolder:WaitForChild("Guns")
 local MainTab = Window:CreateTab("Main", 4483362458)
 local MainSection = MainTab:CreateSection("Gun Menu")
 
--- Get All Guns
+-- Get All Guns Button
 MainTab:CreateButton({
     Name = "Get All Guns",
     Callback = function()
@@ -63,7 +63,7 @@ end
 local PrisonTab = Window:CreateTab("Prison", 4483362458)
 local PrisonSection = PrisonTab:CreateSection("Wall & Movement")
 
--- Clear Prison Wall Button
+-- Clear Prison Wall
 PrisonTab:CreateButton({
     Name = "Clear Prison Wall",
     Callback = function()
@@ -101,7 +101,6 @@ local flySpeed = 50
 local flyVelocity = Instance.new("BodyVelocity")
 flyVelocity.MaxForce = Vector3.new(1e5,1e5,1e5)
 flyVelocity.Velocity = Vector3.new(0,0,0)
-
 local moveVector = Vector3.new(0,0,0)
 
 PrisonTab:CreateToggle({
@@ -119,19 +118,26 @@ PrisonTab:CreateToggle({
     end
 })
 
--- Doors Toggle
-local doorsEnabled = false
-PrisonTab:CreateToggle({
-    Name = "Toggle Doors",
-    CurrentValue = false,
-    Flag = "DoorsToggle",
-    Callback = function(value)
-        doorsEnabled = value
+-- Delete All Doors Button
+PrisonTab:CreateButton({
+    Name = "Delete All Doors",
+    Callback = function()
+        local doorsFolder = Workspace:FindFirstChild("Doors")
+        if doorsFolder then
+            for _, door in ipairs(doorsFolder:GetChildren()) do
+                if door:IsA("BasePart") or door:IsA("Model") then
+                    door:Destroy()
+                end
+            end
+            print("All doors deleted!")
+        else
+            warn("Doors folder not found in workspace")
+        end
     end
 })
 
 -- ========================
--- Fly / Noclip / Doors logic
+-- Fly / Noclip Logic
 -- ========================
 RunService.Stepped:Connect(function()
     -- Noclip
@@ -149,21 +155,6 @@ RunService.Stepped:Connect(function()
             flyVelocity.Velocity = moveVector.Unit * flySpeed
         else
             flyVelocity.Velocity = Vector3.new(0,0,0)
-        end
-    end
-
-    -- Doors toggle
-    if Workspace:FindFirstChild("Doors") then
-        for _, door in ipairs(Workspace.Doors:GetChildren()) do
-            if door:IsA("BasePart") then
-                if doorsEnabled then
-                    door.CanCollide = false
-                    door.Transparency = 0.5
-                else
-                    door.CanCollide = true
-                    door.Transparency = 0
-                end
-            end
         end
     end
 end)
@@ -220,6 +211,7 @@ local function updatePlayerButtons()
     end
 end
 
+-- Auto-update player buttons every 3 seconds
 while true do
     updatePlayerButtons()
     task.wait(3)
