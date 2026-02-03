@@ -63,7 +63,7 @@ end
 local PrisonTab = Window:CreateTab("Prison", 4483362458)
 local PrisonSection = PrisonTab:CreateSection("Wall & Movement")
 
--- Clear Prison Wall
+-- Clear Prison Wall Button
 PrisonTab:CreateButton({
     Name = "Clear Prison Wall",
     Callback = function()
@@ -132,6 +132,31 @@ PrisonTab:CreateButton({
             print("All doors deleted!")
         else
             warn("Doors folder not found in workspace")
+        end
+    end
+})
+
+-- Grab All Items Button (prison_ITEMS.giver)
+PrisonTab:CreateButton({
+    Name = "Grab All Items",
+    Callback = function()
+        local itemsFolder = Workspace:FindFirstChild("prison_ITEMS")
+        if itemsFolder then
+            local giver = itemsFolder:FindFirstChild("giver")
+            if giver then
+                for _, item in ipairs(giver:GetChildren()) do
+                    if item:IsA("Tool") then
+                        item.Parent = backpack
+                    elseif item:IsA("BasePart") then
+                        item.CFrame = root.CFrame + Vector3.new(0,3,0)
+                    end
+                end
+                print("All items grabbed!")
+            else
+                warn("giver folder not found in prison_ITEMS")
+            end
+        else
+            warn("prison_ITEMS folder not found in workspace")
         end
     end
 })
