@@ -32,7 +32,6 @@ local gunsFolder = toolsFolder:WaitForChild("Guns") -- ensure capitalization mat
 local MainTab = Window:CreateTab("Main", 4483362458)
 local MainSection = MainTab:CreateSection("Gun Menu")
 
--- Get All Guns Button
 MainTab:CreateButton({
     Name = "Get All Guns",
     Callback = function()
@@ -44,7 +43,6 @@ MainTab:CreateButton({
     end,
 })
 
--- Individual Gun Buttons
 for _, gun in ipairs(gunsFolder:GetChildren()) do
     if gun:IsA("Tool") then
         MainTab:CreateButton({
@@ -62,9 +60,9 @@ end
 -- Prison Tab
 -- ========================
 local PrisonTab = Window:CreateTab("Prison", 4483362458)
-local PrisonSection = PrisonTab:CreateSection("Wall Tools & Movement")
+local PrisonSection = PrisonTab:CreateSection("Wall & Movement")
 
--- Clear Prison Wall Button
+-- Clear Prison Wall
 PrisonTab:CreateButton({
     Name = "Clear Prison Wall",
     Callback = function()
@@ -85,7 +83,9 @@ PrisonTab:CreateButton({
     end,
 })
 
--- Noclip toggle
+-- ========================
+-- Noclip Toggle
+-- ========================
 local noclipEnabled = false
 PrisonTab:CreateToggle({
     Name = "Noclip",
@@ -106,14 +106,16 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- Fly toggle
+-- ========================
+-- Fly Toggle
+-- ========================
 local flying = false
 local flySpeed = 50
 local flyVelocity = Instance.new("BodyVelocity")
 flyVelocity.MaxForce = Vector3.new(1e5,1e5,1e5)
 flyVelocity.Velocity = Vector3.new(0,0,0)
 
-local flyDirection = Vector3.new(0,0,0)
+local moveVector = Vector3.new(0,0,0)
 
 PrisonTab:CreateToggle({
     Name = "Fly",
@@ -125,50 +127,76 @@ PrisonTab:CreateToggle({
             flyVelocity.Parent = root
         else
             flyVelocity.Parent = nil
+            moveVector = Vector3.new(0,0,0)
         end
     end
 })
 
--- Fly movement input
-local moveVector = Vector3.new(0,0,0)
-
+-- Input handling
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
-    if input.KeyCode == Enum.KeyCode.W then
-        moveVector = moveVector + root.CFrame.LookVector
-    elseif input.KeyCode == Enum.KeyCode.S then
-        moveVector = moveVector - root.CFrame.LookVector
-    elseif input.KeyCode == Enum.KeyCode.A then
-        moveVector = moveVector - root.CFrame.RightVector
-    elseif input.KeyCode == Enum.KeyCode.D then
-        moveVector = moveVector + root.CFrame.RightVector
-    elseif input.KeyCode == Enum.KeyCode.Space then
-        moveVector = moveVector + Vector3.new(0,1,0)
-    elseif input.KeyCode == Enum.KeyCode.LeftShift then
-        moveVector = moveVector - Vector3.new(0,1,0)
-    end
+    if input.KeyCode == Enum.KeyCode.W then moveVector = moveVector + root.CFrame.LookVector end
+    if input.KeyCode == Enum.KeyCode.S then moveVector = moveVector - root.CFrame.LookVector end
+    if input.KeyCode == Enum.KeyCode.A then moveVector = moveVector - root.CFrame.RightVector end
+    if input.KeyCode == Enum.KeyCode.D then moveVector = moveVector + root.CFrame.RightVector end
+    if input.KeyCode == Enum.KeyCode.Space then moveVector = moveVector + Vector3.new(0,1,0) end
+    if input.KeyCode == Enum.KeyCode.LeftShift then moveVector = moveVector - Vector3.new(0,1,0) end
 end)
 
 UserInputService.InputEnded:Connect(function(input, gpe)
     if gpe then return end
-    if input.KeyCode == Enum.KeyCode.W then
-        moveVector = moveVector - root.CFrame.LookVector
-    elseif input.KeyCode == Enum.KeyCode.S then
-        moveVector = moveVector + root.CFrame.LookVector
-    elseif input.KeyCode == Enum.KeyCode.A then
-        moveVector = moveVector + root.CFrame.RightVector
-    elseif input.KeyCode == Enum.KeyCode.D then
-        moveVector = moveVector - root.CFrame.RightVector
-    elseif input.KeyCode == Enum.KeyCode.Space then
-        moveVector = moveVector - Vector3.new(0,1,0)
-    elseif input.KeyCode == Enum.KeyCode.LeftShift then
-        moveVector = moveVector + Vector3.new(0,1,0)
-    end
+    if input.KeyCode == Enum.KeyCode.W then moveVector = moveVector - root.CFrame.LookVector end
+    if input.KeyCode == Enum.KeyCode.S then moveVector = moveVector + root.CFrame.LookVector end
+    if input.KeyCode == Enum.KeyCode.A then moveVector = moveVector + root.CFrame.RightVector end
+    if input.KeyCode == Enum.KeyCode.D then moveVector = moveVector - root.CFrame.RightVector end
+    if input.KeyCode == Enum.KeyCode.Space then moveVector = moveVector - Vector3.new(0,1,0) end
+    if input.KeyCode == Enum.KeyCode.LeftShift then moveVector = moveVector + Vector3.new(0,1,0) end
 end)
 
 RunService.RenderStepped:Connect(function(delta)
     if flying then
-        flyVelocity.Velocity = moveVector.Unit * flySpeed
+        if moveVector.Magnitude > 0 then
+            flyVelocity.Velocity = moveVector.Unit * flySpeed
+        else
+            flyVelocity.Velocity = Vector3.new(0,0,0)
+        end
+    end
+end)
+
+-- ========================
+-- Doors Toggle
+-- ========================
+local doorsEnabled = false
+PrisonTab:CreateToggle({
+    Name = "Toggle Doors",
+    CurrentValue = false,
+    Flag = "DoorsToggle",
+    Callback = function(value)
+        doorsEnabled = value
+    end
+})
+
+RunService.RenderStepped:Connect(function()
+    if doorsEnabled then
+        local doorsFolder = Workspace:FindFirstChild("Doors")
+        if doorsFolder then
+            for _, door in ipairs(doorsFolder:GetChildren()) do
+                if door:IsA("BasePart") then
+                    door.Transparency = 0.5
+                    door.CanCollide = false
+                end
+            end
+        end
+    else
+        local doorsFolder = Workspace:FindFirstChild("Doors")
+        if doorsFolder then
+            for _, door in ipairs(doorsFolder:GetChildren()) do
+                if door:IsA("BasePart") then
+                    door.Transparency = 0
+                    door.CanCollide = true
+                end
+            end
+        end
     end
 end)
 
@@ -180,7 +208,6 @@ local PlayersSection = PlayersTab:CreateSection("Teleport to Player")
 
 local playerButtons = {}
 
--- Function to refresh buttons
 local function updatePlayerButtons()
     for _, btn in pairs(playerButtons) do
         btn:Remove()
@@ -204,7 +231,6 @@ local function updatePlayerButtons()
     end
 end
 
--- Update player buttons every 3 seconds
 while true do
     updatePlayerButtons()
     task.wait(3)
