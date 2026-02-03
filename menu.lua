@@ -29,12 +29,18 @@ MainTab:CreateSection("Guns")
 
 local gunsFolder = ReplicatedStorage:WaitForChild("Tools"):WaitForChild("Guns")
 
+local function cloneTool(tool)
+    if not backpack:FindFirstChild(tool.Name) then
+        tool:Clone().Parent = backpack
+    end
+end
+
 MainTab:CreateButton({
     Name = "Get All Guns",
     Callback = function()
         for _, gun in ipairs(gunsFolder:GetChildren()) do
-            if gun:IsA("Tool") and not backpack:FindFirstChild(gun.Name) then
-                gun:Clone().Parent = backpack
+            if gun:IsA("Tool") then
+                cloneTool(gun)
             end
         end
     end
@@ -45,11 +51,50 @@ for _, gun in ipairs(gunsFolder:GetChildren()) do
         MainTab:CreateButton({
             Name = gun.Name,
             Callback = function()
-                if not backpack:FindFirstChild(gun.Name) then
-                    gun:Clone().Parent = backpack
-                end
+                cloneTool(gun)
             end
         })
+    end
+end
+
+-- =========================
+-- ITEMS TAB (Tools + Melees)
+-- =========================
+local ItemsTab = Window:CreateTab("Items")
+ItemsTab:CreateSection("All Items")
+
+local toolsFolder = ReplicatedStorage:WaitForChild("Tools")
+local meleeFolder = toolsFolder:FindFirstChild("Melees")
+
+local function cloneItem(tool)
+    if not backpack:FindFirstChild(tool.Name) then
+        tool:Clone().Parent = backpack
+    end
+end
+
+-- Add all Tools
+for _, tool in ipairs(toolsFolder:GetChildren()) do
+    if tool:IsA("Tool") then
+        ItemsTab:CreateButton({
+            Name = tool.Name,
+            Callback = function()
+                cloneItem(tool)
+            end
+        })
+    end
+end
+
+-- Add all Melees
+if meleeFolder then
+    for _, melee in ipairs(meleeFolder:GetChildren()) do
+        if melee:IsA("Tool") then
+            ItemsTab:CreateButton({
+                Name = melee.Name,
+                Callback = function()
+                    cloneItem(melee)
+                end
+            })
+        end
     end
 end
 
@@ -131,25 +176,53 @@ PrisonTab:CreateButton({
 -- GOD MODE
 -- =========================
 local godMode = false
-
 PrisonTab:CreateToggle({
     Name = "God Mode",
     CurrentValue = false,
     Callback = function(v)
         godMode = v
-        if v then
-            humanoid.MaxHealth = math.huge
-            humanoid.Health = math.huge
-        else
-            humanoid.MaxHealth = 100
-            humanoid.Health = 100
-        end
     end
 })
 
-humanoid.HealthChanged:Connect(function()
+RunService.Heartbeat:Connect(function()
     if godMode and humanoid.Health < humanoid.MaxHealth then
         humanoid.Health = humanoid.MaxHealth
+        humanoid.MaxHealth = math.huge
+    end
+end)
+
+-- =========================
+-- ANTI-TASER
+-- =========================
+local antiTaser = false
+PrisonTab:CreateToggle({
+    Name = "Anti-Taser",
+    CurrentValue = false,
+    Callback = function(v)
+        antiTaser = v
+    end
+})
+
+RunService.Heartbeat:Connect(function()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player then
+            local pBackpack = plr:FindFirstChild("Backpack")
+            if pBackpack then
+                for _, tool in ipairs(pBackpack:GetChildren()) do
+                    if antiTaser and tool.Name:lower():find("taser") then
+                        tool:Destroy()
+                    end
+                end
+            end
+        end
+    end
+
+    -- Delete GunRemotes.PlayerTased if Anti-Taser enabled
+    if antiTaser then
+        local gunRemotes = ReplicatedStorage:FindFirstChild("GunRemotes")
+        if gunRemotes and gunRemotes:FindFirstChild("PlayerTased") then
+            gunRemotes.PlayerTased:Destroy()
+        end
     end
 end)
 
@@ -157,7 +230,6 @@ end)
 -- NOCLIP
 -- =========================
 local noclip = false
-
 PrisonTab:CreateToggle({
     Name = "Noclip",
     CurrentValue = false,
@@ -173,7 +245,6 @@ local flying = false
 local speed = 60
 local bv = Instance.new("BodyVelocity")
 bv.MaxForce = Vector3.new(1e5,1e5,1e5)
-
 local move = Vector3.zero
 
 PrisonTab:CreateToggle({
