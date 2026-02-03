@@ -1,11 +1,70 @@
+-- Load Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "Sub Hub",
+    LoadingTitle = "Loading",
+    LoadingSubtitle = "By Zachary",
+    ShowText = "Sub Hub",
+    Theme = "Default",
+    ToggleUIKeybind = "K",
+})
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+
+-- Tool folders
+local toolsFolder = ReplicatedStorage:WaitForChild("Tools")
+local gunsFolder = toolsFolder:WaitForChild("Guns")
+
+-- ========================
+-- Main Tab (Guns)
+-- ========================
+local MainTab = Window:CreateTab("Main", 4483362458)
+local MainSection = MainTab:CreateSection("Gun Menu")
+
+-- Get All Guns
+MainTab:CreateButton({
+    Name = "Get All Guns",
+    Callback = function()
+        for _, v in ipairs(gunsFolder:GetChildren()) do
+            if v:IsA("Tool") and not backpack:FindFirstChild(v.Name) then
+                v:Clone().Parent = backpack
+            end
+        end
+    end,
+})
+
+-- Individual gun buttons
+for _, gun in ipairs(gunsFolder:GetChildren()) do
+    if gun:IsA("Tool") then
+        MainTab:CreateButton({
+            Name = gun.Name,
+            Callback = function()
+                if not backpack:FindFirstChild(gun.Name) then
+                    gun:Clone().Parent = backpack
+                end
+            end,
+        })
+    end
+end
+
 -- ========================
 -- Prison Tab
 -- ========================
 local PrisonTab = Window:CreateTab("Prison", 4483362458)
-local PrisonSection = PrisonTab:CreateSection("Wall & Movement") -- create a section first
+local PrisonSection = PrisonTab:CreateSection("Wall & Movement")
 
--- Clear Prison Wall button
-PrisonSection:CreateButton({
+-- Clear Prison Wall Button
+PrisonTab:CreateButton({
     Name = "Clear Prison Wall",
     Callback = function()
         local wall = Workspace:FindFirstChild("Prison_OuterWall")
@@ -17,36 +76,26 @@ PrisonSection:CreateButton({
                 end
                 print("Prison wall cleared!")
             else
-                warn("prison_wall not found in Prison_OuterWall")
+                warn("prison_wall not found")
             end
         else
-            warn("Prison_OuterWall not found in workspace")
+            warn("Prison_OuterWall not found")
         end
     end,
 })
 
--- Noclip toggle
+-- Noclip Toggle
 local noclipEnabled = false
-PrisonSection:CreateToggle({
+PrisonTab:CreateToggle({
     Name = "Noclip",
     CurrentValue = false,
     Flag = "NoclipToggle",
     Callback = function(value)
         noclipEnabled = value
-    end
+    end,
 })
 
-RunService.Stepped:Connect(function()
-    if noclipEnabled then
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end)
-
--- Fly toggle
+-- Fly Toggle
 local flying = false
 local flySpeed = 50
 local flyVelocity = Instance.new("BodyVelocity")
@@ -55,7 +104,7 @@ flyVelocity.Velocity = Vector3.new(0,0,0)
 
 local moveVector = Vector3.new(0,0,0)
 
-PrisonSection:CreateToggle({
+PrisonTab:CreateToggle({
     Name = "Fly",
     CurrentValue = false,
     Flag = "FlyToggle",
@@ -70,9 +119,9 @@ PrisonSection:CreateToggle({
     end
 })
 
--- Doors toggle
+-- Doors Toggle
 local doorsEnabled = false
-PrisonSection:CreateToggle({
+PrisonTab:CreateToggle({
     Name = "Toggle Doors",
     CurrentValue = false,
     Flag = "DoorsToggle",
@@ -81,7 +130,45 @@ PrisonSection:CreateToggle({
     end
 })
 
--- Fly movement logic
+-- ========================
+-- Fly / Noclip / Doors logic
+-- ========================
+RunService.Stepped:Connect(function()
+    -- Noclip
+    if noclipEnabled then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+
+    -- Fly
+    if flying then
+        if moveVector.Magnitude > 0 then
+            flyVelocity.Velocity = moveVector.Unit * flySpeed
+        else
+            flyVelocity.Velocity = Vector3.new(0,0,0)
+        end
+    end
+
+    -- Doors toggle
+    if Workspace:FindFirstChild("Doors") then
+        for _, door in ipairs(Workspace.Doors:GetChildren()) do
+            if door:IsA("BasePart") then
+                if doorsEnabled then
+                    door.CanCollide = false
+                    door.Transparency = 0.5
+                else
+                    door.CanCollide = true
+                    door.Transparency = 0
+                end
+            end
+        end
+    end
+end)
+
+-- Fly movement input
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.W then moveVector = moveVector + root.CFrame.LookVector end
@@ -102,29 +189,38 @@ UserInputService.InputEnded:Connect(function(input, gpe)
     if input.KeyCode == Enum.KeyCode.LeftShift then moveVector = moveVector + Vector3.new(0,1,0) end
 end)
 
-RunService.RenderStepped:Connect(function()
-    -- Fly
-    if flying then
-        if moveVector.Magnitude > 0 then
-            flyVelocity.Velocity = moveVector.Unit * flySpeed
-        else
-            flyVelocity.Velocity = Vector3.new(0,0,0)
-        end
-    end
+-- ========================
+-- Players Tab
+-- ========================
+local PlayersTab = Window:CreateTab("Players", 4483362458)
+local PlayersSection = PlayersTab:CreateSection("Teleport to Player")
 
-    -- Doors toggle
-    local doorsFolder = Workspace:FindFirstChild("Doors")
-    if doorsFolder then
-        for _, door in ipairs(doorsFolder:GetChildren()) do
-            if door:IsA("BasePart") then
-                if doorsEnabled then
-                    door.CanCollide = false
-                    door.Transparency = 0.5
-                else
-                    door.CanCollide = true
-                    door.Transparency = 0
+local playerButtons = {}
+
+local function updatePlayerButtons()
+    for _, btn in pairs(playerButtons) do
+        btn:Remove()
+    end
+    playerButtons = {}
+
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player then
+            local btn = PlayersTab:CreateButton({
+                Name = "TP to " .. plr.Name,
+                Callback = function()
+                    local char = plr.Character
+                    local myChar = player.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") and myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                        myChar.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
+                    end
                 end
-            end
+            })
+            table.insert(playerButtons, btn)
         end
     end
-end)
+end
+
+while true do
+    updatePlayerButtons()
+    task.wait(3)
+end
