@@ -11,7 +11,7 @@ if game.PlaceId == 155615604 then
 
 elseif game.PlaceId == 135700444243485 then
     -- Script for second place
-    local url = "https://raw.githubusercontent.com/yourusername/yourscript/main/script2.lua"
+    local url = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu2.lua"
     local success, err = pcall(function()
         loadstring(game:HttpGet(url))()
     end)
