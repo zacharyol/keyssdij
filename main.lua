@@ -1,24 +1,35 @@
--- Place-specific script loader
-if game.PlaceId == 155615604 then
-    -- Script for first place
-    local url = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu.lua"
+-- Place-specific script loader with fallback
+
+local function loadScript(url, label)
     local success, err = pcall(function()
         loadstring(game:HttpGet(url))()
     end)
+
     if not success then
-        warn("Failed to load script for PlaceId 155615604: "..tostring(err))
+        warn("Failed to load script (" .. label .. "): " .. tostring(err))
     end
+end
+
+if game.PlaceId == 155615604 then
+    -- Script for first place
+    loadScript(
+        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu.lua",
+        "PlaceId 155615604"
+    )
 
 elseif game.PlaceId == 135700444243485 then
     -- Script for second place
-    local url = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu2.lua"
-    local success, err = pcall(function()
-        loadstring(game:HttpGet(url))()
-    end)
-    if not success then
-        warn("Failed to load script for PlaceId 123456789: "..tostring(err))
-    end
+    loadScript(
+        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu2.lua",
+        "PlaceId 135700444243485"
+    )
 
 else
-    print("No script configured for this PlaceId: "..game.PlaceId)
+    -- Fallback if no PlaceId matches
+    warn("No specific script for PlaceId " .. game.PlaceId .. ", loading menu2 fallback")
+
+    loadScript(
+        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu2.lua",
+        "Fallback (menu2)"
+    )
 end
