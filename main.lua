@@ -9,7 +9,7 @@ if game.PlaceId == 155615604 then
         warn("Failed to load script for PlaceId 155615604: "..tostring(err))
     end
 
-elseif game.PlaceId == 123456789 then
+elseif game.PlaceId == 135700444243485 then
     -- Script for second place
     local url = "https://raw.githubusercontent.com/yourusername/yourscript/main/script2.lua"
     local success, err = pcall(function()
