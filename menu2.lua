@@ -1,5 +1,5 @@
 -- =========================
--- RAYFIELD UI TEMPLATE
+-- SUB HUB NEW RAYFIELD TEMPLATE
 -- =========================
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
@@ -31,88 +31,97 @@ local Window = Rayfield:CreateWindow({
 -- SERVICES
 -- =========================
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
-local backpack = player:WaitForChild("Backpack")
 local character = player.Character or player.CharacterAdded:Wait()
-local root = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
 
 -- =========================
--- MAIN TAB
+-- PLAYER SETTINGS TAB
 -- =========================
-local MainTab = Window:CreateTab("Main")
-MainTab:CreateSection("Actions")
+local PlayerTab = Window:CreateTab("Player Settings")
+PlayerTab:CreateSection("Adjust Your Character")
 
--- Example button
-MainTab:CreateButton({
-    Name = "Example Action",
-    Callback = function()
-        print("Button pressed!")
-    end
-})
-
--- =========================
--- PLACE-SPECIFIC SCRIPT LOADER
--- =========================
-local function loadPlaceScript(url)
-    local success, err = pcall(function()
-        loadstring(game:HttpGet(url))()
-    end)
-    if not success then
-        warn("Failed to load script: "..tostring(err))
-    end
-end
-
-if game.PlaceId == 155615604 then
-    loadPlaceScript("https://raw.githubusercontent.com/yourusername/yourscript/main/script1.lua")
-elseif game.PlaceId == 123456789 then
-    loadPlaceScript("https://raw.githubusercontent.com/yourusername/yourscript/main/script2.lua")
-else
-    print("No script configured for this PlaceId: "..game.PlaceId)
-end
-
--- =========================
--- TOGGLE EXAMPLE
--- =========================
-local exampleToggle = false
-MainTab:CreateToggle({
-    Name = "Example Toggle",
-    CurrentValue = false,
-    Callback = function(v)
-        exampleToggle = v
-        print("Toggle is now: "..tostring(v))
-    end
-})
-
--- =========================
--- SLIDER EXAMPLE
--- =========================
-local exampleValue = 0
-MainTab:CreateSlider({
-    Name = "Example Slider",
-    Range = {0, 100},
+-- Walk Speed
+PlayerTab:CreateSlider({
+    Name = "Walk Speed",
+    Range = {16, 500},
     Increment = 1,
-    CurrentValue = 50,
-    Flag = "ExampleSlider",
-    Callback = function(v)
-        exampleValue = v
-        print("Slider value: "..v)
+    CurrentValue = humanoid.WalkSpeed,
+    Flag = "WalkSpeedSlider",
+    Callback = function(value)
+        humanoid.WalkSpeed = value
+    end
+})
+
+-- Jump Power
+PlayerTab:CreateSlider({
+    Name = "Jump Power",
+    Range = {50, 500},
+    Increment = 1,
+    CurrentValue = humanoid.JumpPower,
+    Flag = "JumpPowerSlider",
+    Callback = function(value)
+        humanoid.JumpPower = value
+    end
+})
+
+-- Hip Height
+PlayerTab:CreateSlider({
+    Name = "Hip Height",
+    Range = {0, 20},
+    Increment = 0.1,
+    CurrentValue = humanoid.HipHeight,
+    Flag = "HipHeightSlider",
+    Callback = function(value)
+        humanoid.HipHeight = value
+    end
+})
+
+-- Player Scale
+local scaleValue = 1
+PlayerTab:CreateSlider({
+    Name = "Player Scale",
+    Range = {0.5, 5},
+    Increment = 0.1,
+    CurrentValue = scaleValue,
+    Flag = "PlayerScaleSlider",
+    Callback = function(value)
+        scaleValue = value
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") or part:IsA("MeshPart") then
+                part.Size = part.Size.Unit * scaleValue
+            elseif part:IsA("Accessory") and part:FindFirstChild("Handle") then
+                part.Handle.Size = part.Handle.Size.Unit * scaleValue
+            end
+        end
     end
 })
 
 -- =========================
--- KEYBINDS EXAMPLE
+-- TELEPORT SAVE FEATURE
 -- =========================
-MainTab:CreateKeybind({
-    Name = "Example Keybind",
-    CurrentKeybind = "F",
-    HoldToInteract = false,
+local savedCFrame = nil
+
+PlayerTab:CreateButton({
+    Name = "Save Current Position",
     Callback = function()
-        print("Keybind pressed!")
+        savedCFrame = root.CFrame
+        print("Position saved!")
+    end
+})
+
+PlayerTab:CreateButton({
+    Name = "Teleport to Saved Position",
+    Callback = function()
+        if savedCFrame then
+            root.CFrame = savedCFrame
+            print("Teleported to saved position!")
+        else
+            print("No saved position!")
+        end
     end
 })
