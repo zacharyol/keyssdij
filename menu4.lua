@@ -6,13 +6,11 @@ local Window = Rayfield:CreateWindow({
     LoadingTitle = "Loading",
     LoadingSubtitle = "By Zachary",
     ToggleUIKeybind = "K",
-    
     Discord = {
        Enabled = true,
        Invite = "https://discord.gg/8mYgKKKsSY",
        RememberJoins = true
     },
-
     KeySystem = false
 })
 
@@ -22,35 +20,175 @@ local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
+
+-- Tables to store highlights
+local sharkHighlights = {}
+local playerHighlights = {}
+local boatHighlights = {}
 
 -- =========================
 -- MAIN TAB
 -- =========================
 local MainTab = Window:CreateTab("Main")
-MainTab:CreateSection("ESP Controls")
+MainTab:CreateSection("ESP Features")
 
--- =========================
 -- SHARK ESP
--- =========================
 local sharkESPEnabled = false
-local sharkHighlights = {}
-
 MainTab:CreateToggle({
     Name = "Shark ESP",
     CurrentValue = false,
     Callback = function(v)
         sharkESPEnabled = v
         if not v then
-            for _, h in pairs(sharkHighlights) do
-                h:Destroy()
-            end
+            for _, h in pairs(sharkHighlights) do h:Destroy() end
             sharkHighlights = {}
         else
-            -- Apply highlights to existing sharks
-            local sharksFolder = Workspace:FindFirstChild("Sharks")
-            if sharksFolder then
-                for _, shark in ipairs(sharksFolder:GetChildren()) do
+            local sharks = Workspace:FindFirstChild("Sharks")
+            if sharks then
+                for _, shark in ipairs(sharks:GetChildren()) do
+                    if shark:IsA("Model") then
+                        if not shark.PrimaryPart then
+                            for _, p in ipairs(shark:GetDescendants()) do
+                                if p:IsA("BasePart") then
+                                    shark.PrimaryPart = p
+                                    break
+                                end
+                            end
+                        end
+                        if shark.PrimaryPart and not sharkHighlights[shark] then
+                            local h = Instance.new("Highlight")
+                            h.FillColor = Color3.fromRGB(0, 0, 255)
+                            h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                            h.Adornee = shark
+                            h.Parent = shark
+                            sharkHighlights[shark] = h
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- PLAYER ESP
+local playerESPEnabled = false
+MainTab:CreateToggle({
+    Name = "Player ESP",
+    CurrentValue = false,
+    Callback = function(v)
+        playerESPEnabled = v
+        if not v then
+            for _, h in pairs(playerHighlights) do h:Destroy() end
+            playerHighlights = {}
+        else
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= player and plr.Character then
+                    local h = Instance.new("Highlight")
+                    h.FillColor = Color3.fromRGB(255, 0, 0)
+                    h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    h.Adornee = plr.Character
+                    h.Parent = plr.Character
+                    playerHighlights[plr] = h
+                end
+            end
+        end
+    end
+})
+
+-- BOAT ESP
+local boatESPEnabled = false
+MainTab:CreateToggle({
+    Name = "Boat ESP",
+    CurrentValue = false,
+    Callback = function(v)
+        boatESPEnabled = v
+        if not v then
+            for _, h in pairs(boatHighlights) do h:Destroy() end
+            boatHighlights = {}
+        else
+            local boatsFolder = Workspace:FindFirstChild("Boats")
+            if boatsFolder then
+                for _, boat in ipairs(boatsFolder:GetChildren()) do
+                    if boat:IsA("Model") then
+                        if not boat.PrimaryPart then
+                            for _, p in ipairs(boat:GetDescendants()) do
+                                if p:IsA("BasePart") then
+                                    boat.PrimaryPart = p
+                                    break
+                                end
+                            end
+                        end
+                        if boat.PrimaryPart and not boatHighlights[boat] then
+                            local h = Instance.new("Highlight")
+                            h.FillColor = Color3.fromRGB(0, 255, 255)
+                            h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                            h.Adornee = boat
+                            h.Parent = boat
+                            boatHighlights[boat] = h
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- AUTO REFRESH BOAT ESP every 5 seconds
+spawn(function()
+    while true do
+        if boatESPEnabled then
+            local boatsFolder = Workspace:FindFirstChild("Boats")
+            if boatsFolder then
+                for _, boat in ipairs(boatsFolder:GetChildren()) do
+                    if boat:IsA("Model") and not boatHighlights[boat] then
+                        if not boat.PrimaryPart then
+                            for _, p in ipairs(boat:GetDescendants()) do
+                                if p:IsA("BasePart") then
+                                    boat.PrimaryPart = p
+                                    break
+                                end
+                            end
+                        end
+                        if boat.PrimaryPart then
+                            local h = Instance.new("Highlight")
+                            h.FillColor = Color3.fromRGB(0, 255, 255)
+                            h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                            h.Adornee = boat
+                            h.Parent = boat
+                            boatHighlights[boat] = h
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(5)
+    end
+end)
+
+-- =========================
+-- REFRESH ALL ESPs BUTTON
+-- =========================
+MainTab:CreateButton({
+    Name = "Refresh All ESPs",
+    Callback = function()
+        -- Destroy all highlights
+        for _, h in pairs(sharkHighlights) do h:Destroy() end
+        for _, h in pairs(playerHighlights) do h:Destroy() end
+        for _, h in pairs(boatHighlights) do h:Destroy() end
+
+        sharkHighlights = {}
+        playerHighlights = {}
+        boatHighlights = {}
+
+        -- Reapply ESPs if toggled
+        if sharkESPEnabled then
+            local sharks = Workspace:FindFirstChild("Sharks")
+            if sharks then
+                for _, shark in ipairs(sharks:GetChildren()) do
                     if shark:IsA("Model") then
                         if not shark.PrimaryPart then
                             for _, p in ipairs(shark:GetDescendants()) do
@@ -73,56 +211,10 @@ MainTab:CreateToggle({
                 end
             end
         end
-    end
-})
 
--- Update shark ESP for new sharks
-Workspace.ChildAdded:Connect(function(child)
-    if sharkESPEnabled and child.Parent == Workspace and child.Name == "Sharks" then
-        for _, shark in ipairs(child:GetChildren()) do
-            if shark:IsA("Model") and not sharkHighlights[shark] then
-                if not shark.PrimaryPart then
-                    for _, p in ipairs(shark:GetDescendants()) do
-                        if p:IsA("BasePart") then
-                            shark.PrimaryPart = p
-                            break
-                        end
-                    end
-                end
-                if shark.PrimaryPart then
-                    local h = Instance.new("Highlight")
-                    h.FillColor = Color3.fromRGB(0, 0, 255)
-                    h.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    h.Adornee = shark
-                    h.Parent = shark
-                    sharkHighlights[shark] = h
-                end
-            end
-        end
-    end
-end)
-
--- =========================
--- PLAYER ESP
--- =========================
-local playerESPEnabled = false
-local playerHighlights = {}
-
-MainTab:CreateToggle({
-    Name = "Player ESP",
-    CurrentValue = false,
-    Callback = function(v)
-        playerESPEnabled = v
-        if not v then
-            for _, h in pairs(playerHighlights) do
-                h:Destroy()
-            end
-            playerHighlights = {}
-        else
+        if playerESPEnabled then
             for _, plr in ipairs(Players:GetPlayers()) do
                 if plr ~= player and plr.Character then
-                    if playerHighlights[plr] then playerHighlights[plr]:Destroy() end
                     local h = Instance.new("Highlight")
                     h.FillColor = Color3.fromRGB(255, 0, 0)
                     h.OutlineColor = Color3.fromRGB(255, 255, 255)
@@ -133,31 +225,32 @@ MainTab:CreateToggle({
                 end
             end
         end
+
+        if boatESPEnabled then
+            local boatsFolder = Workspace:FindFirstChild("Boats")
+            if boatsFolder then
+                for _, boat in ipairs(boatsFolder:GetChildren()) do
+                    if boat:IsA("Model") then
+                        if not boat.PrimaryPart then
+                            for _, p in ipairs(boat:GetDescendants()) do
+                                if p:IsA("BasePart") then
+                                    boat.PrimaryPart = p
+                                    break
+                                end
+                            end
+                        end
+                        if boat.PrimaryPart then
+                            local h = Instance.new("Highlight")
+                            h.FillColor = Color3.fromRGB(0, 255, 255)
+                            h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                            h.Adornee = boat
+                            h.Parent = boat
+                            boatHighlights[boat] = h
+                        end
+                    end
+                end
+            end
+        end
     end
 })
-
--- Update player ESP when new players join
-Players.PlayerAdded:Connect(function(plr)
-    if playerESPEnabled and plr ~= player then
-        plr.CharacterAdded:Connect(function(char)
-            if playerESPEnabled then
-                local h = Instance.new("Highlight")
-                h.FillColor = Color3.fromRGB(255, 0, 0)
-                h.OutlineColor = Color3.fromRGB(255, 255, 255)
-                h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                h.Adornee = char
-                h.Parent = char
-                playerHighlights[plr] = h
-            end
-        end)
-    end
-end)
-
-Players.PlayerRemoving:Connect(function(plr)
-    if playerHighlights[plr] then
-        playerHighlights[plr]:Destroy()
-        playerHighlights[plr] = nil
-    end
-end)
-
-print("ESP hub loaded successfully!")
