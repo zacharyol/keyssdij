@@ -168,9 +168,8 @@ MainTab:CreateButton({
     Callback = function()
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= player and hasKnife(plr) then
-                -- Wait for their character to exist
                 local char = plr.Character or plr.CharacterAdded:Wait()
-                local hrp = char:WaitForChild("HumanoidRootPart", 5) -- Wait max 5s
+                local hrp = char:WaitForChild("HumanoidRootPart")
                 if hrp then
                     root.CFrame = hrp.CFrame * CFrame.new(0,5,0)
                     break
@@ -186,7 +185,7 @@ MainTab:CreateButton({
         for _, plr in ipairs(Players:GetPlayers()) do
             if plr ~= player and hasGun(plr) then
                 local char = plr.Character or plr.CharacterAdded:Wait()
-                local hrp = char:WaitForChild("HumanoidRootPart", 5)
+                local hrp = char:WaitForChild("HumanoidRootPart")
                 if hrp then
                     root.CFrame = hrp.CFrame * CFrame.new(0,5,0)
                     break
