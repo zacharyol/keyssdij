@@ -187,6 +187,19 @@ PrisonTab:CreateButton({
     end
 })
 
+-- NEW BUTTON ADDED
+PrisonTab:CreateButton({
+    Name = "Delete Prison Fences",
+    Callback = function()
+        local fences = Workspace:FindFirstChild("Prison_Fences")
+        if fences then
+            for _, v in ipairs(fences:GetChildren()) do
+                v:Destroy()
+            end
+        end
+    end
+})
+
 -- =========================
 -- ARREST ALL CRIMINALS
 -- =========================
