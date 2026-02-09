@@ -32,13 +32,13 @@ elseif game.PlaceId == 107959286470160 then
 
 elseif game.PlaceId == 734159876 then
     loadScript(
-        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu4.lua",
+        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu4.lua",
         "PlaceId 734159876"
     )
 
 elseif game.PlaceId == 142823291 then
     loadScript(
-        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu5.lua",
+        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu5.lua",
         "PlaceId 142823291"
     )
     
