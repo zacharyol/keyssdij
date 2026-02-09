@@ -8,13 +8,12 @@ local Window = Rayfield:CreateWindow({
     ToggleUIKeybind = "K",
     
     Discord = {
-       Enabled = true, -- Prompt the user to join your Discord server if their executor supports it
-       Invite = "https://discord.gg/8mYgKKKsSY", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
-       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+       Enabled = true,
+       Invite = "https://discord.gg/8mYgKKKsSY",
+       RememberJoins = true
     },
 
-    -- 🔑 KEY SYSTEM (ADDED, NOTHING ELSE TOUCHED)
-    KeySystem = true,
+    KeySystem = false,
     KeySettings = {
         Title = "Sub Hub Key System",
         Subtitle = "Enter your key",
@@ -76,6 +75,62 @@ for _, gun in ipairs(gunsFolder:GetChildren()) do
 end
 
 -- =========================
+-- PRISONER AIM-ASSIST (SILENT AIM)
+-- =========================
+local aimAssistEnabled = false
+local aimAssistKey = Enum.KeyCode.E -- Toggle key
+
+-- Add toggle in your MainTab
+MainTab:CreateToggle({
+    Name = "Aim-Assist (Prisoners)",
+    CurrentValue = false,
+    Callback = function(v)
+        aimAssistEnabled = v
+    end
+})
+
+-- Function to get closest prisoner
+local function getClosestPrisoner()
+    local closest
+    local distance = math.huge
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Team and plr.Team.Name == "Inmates" and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (plr.Character.HumanoidRootPart.Position - root.Position).Magnitude
+            if dist < distance then
+                distance = dist
+                closest = plr
+            end
+        end
+    end
+    return closest
+end
+
+-- Toggle keybind
+UserInputService.InputBegan:Connect(function(input, g)
+    if g then return end
+    if input.KeyCode == aimAssistKey then
+        aimAssistEnabled = not aimAssistEnabled
+        print("Aim-Assist toggled:", aimAssistEnabled)
+    end
+end)
+
+-- Smooth camera rotation toward target
+RunService.RenderStepped:Connect(function(delta)
+    if aimAssistEnabled then
+        local target = getClosestPrisoner()
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            local cam = workspace.CurrentCamera
+            local targetPos = target.Character.HumanoidRootPart.Position
+
+            -- Smoothly rotate camera
+            local currentCFrame = cam.CFrame
+            local desiredCFrame = CFrame.lookAt(currentCFrame.Position, targetPos)
+            cam.CFrame = currentCFrame:Lerp(desiredCFrame, 0.15) -- 0.15 = smoothness
+        end
+    end
+end)
+
+-- =========================
 -- ITEMS TAB (Tools + Melees)
 -- =========================
 local ItemsTab = Window:CreateTab("Items")
@@ -131,6 +186,77 @@ PrisonTab:CreateButton({
         end
     end
 })
+
+-- =========================
+-- ARREST ALL CRIMINALS
+-- =========================
+local arresting = false
+local mouse = player:GetMouse()
+
+PrisonTab:CreateToggle({
+    Name = "Arrest All Criminals",
+    CurrentValue = false,
+    Callback = function(v)
+        arresting = v
+        if not v then return end
+
+        task.spawn(function()
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if not arresting then break end
+                if plr ~= player
+                and plr.Team
+                and plr.Team.Name == "Criminals"
+                and plr.Character
+                and plr.Character:FindFirstChild("HumanoidRootPart") then
+
+                    -- Make sure we are holding handcuffs
+                    local cuffs = backpack:FindFirstChild("Handcuffs") or character:FindFirstChild("Handcuffs")
+                    if not cuffs then
+                        warn("Handcuffs not equipped. Stopping arrest loop.")
+                        arresting = false
+                        break
+                    end
+
+                    -- Equip handcuffs if needed
+                    if cuffs.Parent ~= character then
+                        humanoid:EquipTool(cuffs)
+                        task.wait(0.4)
+                    end
+
+                    -- Slow teleport near target
+                    local targetRoot = plr.Character.HumanoidRootPart
+                    local steps = 15
+                    for i = 1, steps do
+                        if not arresting then return end
+                        root.CFrame = root.CFrame:Lerp(
+                            targetRoot.CFrame * CFrame.new(0, 0, 2),
+                            i / steps
+                        )
+                        task.wait(0.05)
+                    end
+
+                    -- Wait for player click
+                    local clicked = false
+                    local conn
+                    conn = mouse.Button1Down:Connect(function()
+                        clicked = true
+                        conn:Disconnect()
+                    end)
+
+                    while not clicked and arresting do
+                        task.wait()
+                    end
+
+                    -- Small delay before next criminal
+                    task.wait(0.6)
+                end
+            end
+
+            arresting = false
+        end)
+    end
+})
+
 
 PrisonTab:CreateButton({
     Name = "Delete Doors",
@@ -204,7 +330,7 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- =========================
--- ANTI-TASER (KEPT)
+-- ANTI-TASER
 -- =========================
 local antiTaser = false
 PrisonTab:CreateToggle({
