@@ -30,6 +30,13 @@ elseif game.PlaceId == 107959286470160 then
         "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu3.lua",
         "PlaceId 107959286470160"
     )
+
+ elseif game.PlaceId == 734159876 then
+    -- Script for 4 place
+    loadScript(
+        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu4.lua",
+        "PlaceId 734159876"
+    )
     
 else
     -- Fallback if no PlaceId matches
