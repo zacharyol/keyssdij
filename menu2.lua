@@ -15,7 +15,7 @@ local Window = Rayfield:CreateWindow({
        RememberJoins = true
     },
 
-    KeySystem = true,
+    KeySystem = false,
     KeySettings = {
         Title = "Sub Hub Key System",
         Subtitle = "Enter your key",
