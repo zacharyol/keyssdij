@@ -35,6 +35,12 @@ elseif game.PlaceId == 734159876 then
         "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu4.lua",
         "PlaceId 734159876"
     )
+
+elseif game.PlaceId == 142823291 then
+    loadScript(
+        "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu5.lua",
+        "PlaceId 142823291"
+    )
     
 else
     warn("No specific script for PlaceId " .. game.PlaceId .. ", loading menu2 fallback")
