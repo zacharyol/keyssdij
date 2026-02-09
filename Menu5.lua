@@ -2,8 +2,8 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Weapon ESP Hub",
-    LoadingTitle = "Loading Weapon ESP Hub",
+    Name = "sub Hub",
+    LoadingTitle = "Loading",
     LoadingSubtitle = "By Zachary",
     ToggleUIKeybind = "K",
     Discord = {
@@ -23,6 +23,7 @@ local player = Players.LocalPlayer
 -- Tables to store highlights
 local knifeHighlights = {}
 local gunHighlights = {}
+local innocentHighlights = {}
 
 -- =========================
 -- MAIN TAB
@@ -62,18 +63,38 @@ MainTab:CreateToggle({
     end
 })
 
--- Function to check if player has a Knife
+-- Innocent ESP Toggle
+local innocentESPEnabled = false
+MainTab:CreateToggle({
+    Name = "Innocent ESP",
+    CurrentValue = false,
+    Callback = function(v)
+        innocentESPEnabled = v
+        if not v then
+            for _, h in pairs(innocentHighlights) do
+                h:Destroy()
+            end
+            innocentHighlights = {}
+        end
+    end
+})
+
+-- Refresh Button
+MainTab:CreateButton({
+    Name = "Refresh All ESPs",
+    Callback = function()
+        updateAllESPs()
+    end
+})
+
+-- Functions to check tools
 local function hasKnife(plr)
     if not plr.Character then return false end
-
-    -- Check character
     for _, tool in ipairs(plr.Character:GetChildren()) do
         if tool:IsA("Tool") and tool.Name:lower():find("knife") then
             return true
         end
     end
-
-    -- Check backpack
     local backpack = plr:FindFirstChild("Backpack")
     if backpack then
         for _, tool in ipairs(backpack:GetChildren()) do
@@ -82,22 +103,16 @@ local function hasKnife(plr)
             end
         end
     end
-
     return false
 end
 
--- Function to check if player has a Gun
 local function hasGun(plr)
     if not plr.Character then return false end
-
-    -- Check character
     for _, tool in ipairs(plr.Character:GetChildren()) do
         if tool:IsA("Tool") and tool.Name:lower():find("gun") then
             return true
         end
     end
-
-    -- Check backpack
     local backpack = plr:FindFirstChild("Backpack")
     if backpack then
         for _, tool in ipairs(backpack:GetChildren()) do
@@ -106,11 +121,10 @@ local function hasGun(plr)
             end
         end
     end
-
     return false
 end
 
--- Function to apply highlight
+-- Highlight utility
 local function applyHighlight(plr, color, tableRef)
     if tableRef[plr] then return end
     if not plr.Character then return end
@@ -123,7 +137,6 @@ local function applyHighlight(plr, color, tableRef)
     tableRef[plr] = h
 end
 
--- Function to remove highlight
 local function removeHighlight(plr, tableRef)
     if tableRef[plr] then
         tableRef[plr]:Destroy()
@@ -131,43 +144,45 @@ local function removeHighlight(plr, tableRef)
     end
 end
 
--- Loop through players and update ESP
-RunService.Heartbeat:Connect(function()
+-- Update ESPs
+function updateAllESPs()
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= player then
+            local hasK = hasKnife(plr)
+            local hasG = hasGun(plr)
+
             -- Knife ESP
-            if knifeESPEnabled then
-                if hasKnife(plr) then
-                    applyHighlight(plr, Color3.fromRGB(255,0,0), knifeHighlights)
-                else
-                    removeHighlight(plr, knifeHighlights)
-                end
+            if knifeESPEnabled and hasK then
+                applyHighlight(plr, Color3.fromRGB(255,0,0), knifeHighlights)
             else
                 removeHighlight(plr, knifeHighlights)
             end
 
             -- Gun ESP
-            if gunESPEnabled then
-                if hasGun(plr) then
-                    applyHighlight(plr, Color3.fromRGB(0,0,255), gunHighlights)
-                else
-                    removeHighlight(plr, gunHighlights)
-                end
+            if gunESPEnabled and hasG then
+                applyHighlight(plr, Color3.fromRGB(0,0,255), gunHighlights)
             else
                 removeHighlight(plr, gunHighlights)
             end
+
+            -- Innocent ESP
+            if innocentESPEnabled and not hasK and not hasG then
+                applyHighlight(plr, Color3.fromRGB(0,255,0), innocentHighlights)
+            else
+                removeHighlight(plr, innocentHighlights)
+            end
         end
     end
+end
+
+-- Loop updates every heartbeat
+RunService.Heartbeat:Connect(function()
+    updateAllESPs()
 end)
 
--- Refresh highlights when a new player joins
+-- Update when new players join
 Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(function()
-        if knifeESPEnabled and hasKnife(plr) then
-            applyHighlight(plr, Color3.fromRGB(255,0,0), knifeHighlights)
-        end
-        if gunESPEnabled and hasGun(plr) then
-            applyHighlight(plr, Color3.fromRGB(0,0,255), gunHighlights)
-        end
+        updateAllESPs()
     end)
 end)
