@@ -2,7 +2,7 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "sub Hub",
+    Name = "Sub Hub",
     LoadingTitle = "Loading",
     LoadingSubtitle = "By Zachary",
     ToggleUIKeybind = "K",
@@ -22,7 +22,7 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local root = character:WaitForChild("HumanoidRootPart")
 
--- Tables to store highlights
+-- Highlight tables
 local knifeHighlights = {}
 local gunHighlights = {}
 local innocentHighlights = {}
@@ -41,9 +41,7 @@ MainTab:CreateToggle({
     Callback = function(v)
         knifeESPEnabled = v
         if not v then
-            for _, h in pairs(knifeHighlights) do
-                h:Destroy()
-            end
+            for _, h in pairs(knifeHighlights) do h:Destroy() end
             knifeHighlights = {}
         end
     end
@@ -57,9 +55,7 @@ MainTab:CreateToggle({
     Callback = function(v)
         gunESPEnabled = v
         if not v then
-            for _, h in pairs(gunHighlights) do
-                h:Destroy()
-            end
+            for _, h in pairs(gunHighlights) do h:Destroy() end
             gunHighlights = {}
         end
     end
@@ -73,15 +69,13 @@ MainTab:CreateToggle({
     Callback = function(v)
         innocentESPEnabled = v
         if not v then
-            for _, h in pairs(innocentHighlights) do
-                h:Destroy()
-            end
+            for _, h in pairs(innocentHighlights) do h:Destroy() end
             innocentHighlights = {}
         end
     end
 })
 
--- Refresh Button
+-- Refresh button
 MainTab:CreateButton({
     Name = "Refresh All ESPs",
     Callback = function()
@@ -89,53 +83,34 @@ MainTab:CreateButton({
     end
 })
 
--- Functions to check tools
-local function hasKnife(plr)
-    if not plr.Character then return false end
-    for _, tool in ipairs(plr.Character:GetChildren()) do
-        if tool:IsA("Tool") and tool.Name:lower():find("knife") then
-            return true
+-- Tool check functions
+local function hasTool(plr, keyword)
+    if plr.Character then
+        for _, tool in ipairs(plr.Character:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name:lower():find(keyword) then return true end
         end
     end
-    local backpack = plr:FindFirstChild("Backpack")
-    if backpack then
-        for _, tool in ipairs(backpack:GetChildren()) do
-            if tool:IsA("Tool") and tool.Name:lower():find("knife") then
-                return true
-            end
+    local bp = plr:FindFirstChild("Backpack")
+    if bp then
+        for _, tool in ipairs(bp:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name:lower():find(keyword) then return true end
         end
     end
     return false
 end
 
-local function hasGun(plr)
-    if not plr.Character then return false end
-    for _, tool in ipairs(plr.Character:GetChildren()) do
-        if tool:IsA("Tool") and tool.Name:lower():find("gun") then
-            return true
-        end
-    end
-    local backpack = plr:FindFirstChild("Backpack")
-    if backpack then
-        for _, tool in ipairs(backpack:GetChildren()) do
-            if tool:IsA("Tool") and tool.Name:lower():find("gun") then
-                return true
-            end
-        end
-    end
-    return false
-end
+local function hasKnife(plr) return hasTool(plr, "knife") end
+local function hasGun(plr) return hasTool(plr, "gun") end
 
 -- Highlight utility
 local function applyHighlight(plr, color, tableRef)
-    if tableRef[plr] then return end
-    if not plr.Character then return end
+    if not plr.Character or tableRef[plr] then return end
     local h = Instance.new("Highlight")
     h.FillColor = color
-    h.OutlineColor = Color3.fromRGB(255, 255, 255)
+    h.OutlineColor = Color3.fromRGB(255,255,255)
     h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     h.Adornee = plr.Character
-    h.Parent = plr.Character
+    h.Parent = workspace
     tableRef[plr] = h
 end
 
@@ -146,45 +121,41 @@ local function removeHighlight(plr, tableRef)
     end
 end
 
--- Update ESPs
+-- Update all ESPs
 function updateAllESPs()
     for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= player then
-            local hasK = hasKnife(plr)
-            local hasG = hasGun(plr)
+        if plr ~= player and plr.Character then
+            local isKnife = hasKnife(plr)
+            local isGun = hasGun(plr)
 
-            -- Knife ESP
-            if knifeESPEnabled and hasK then
-                applyHighlight(plr, Color3.fromRGB(255,0,0), knifeHighlights)
-            else
-                removeHighlight(plr, knifeHighlights)
-            end
+            -- Knife
+            if knifeESPEnabled and isKnife then applyHighlight(plr, Color3.fromRGB(255,0,0), knifeHighlights)
+            else removeHighlight(plr, knifeHighlights) end
 
-            -- Gun ESP
-            if gunESPEnabled and hasG then
-                applyHighlight(plr, Color3.fromRGB(0,0,255), gunHighlights)
-            else
-                removeHighlight(plr, gunHighlights)
-            end
+            -- Gun
+            if gunESPEnabled and isGun then applyHighlight(plr, Color3.fromRGB(0,0,255), gunHighlights)
+            else removeHighlight(plr, gunHighlights) end
 
-            -- Innocent ESP
-            if innocentESPEnabled and not hasK and not hasG then
+            -- Innocent
+            if innocentESPEnabled and not isKnife and not isGun then
                 applyHighlight(plr, Color3.fromRGB(0,255,0), innocentHighlights)
-            else
-                removeHighlight(plr, innocentHighlights)
-            end
+            else removeHighlight(plr, innocentHighlights) end
         end
     end
 end
 
--- Loop updates every heartbeat
-RunService.Heartbeat:Connect(function()
-    updateAllESPs()
+-- Loop updates
+spawn(function()
+    while true do
+        updateAllESPs()
+        task.wait(0.2) -- smoother update
+    end
 end)
 
--- Update when new players join
+-- Update on new player / respawn
 Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(function()
+        task.wait(0.5)
         updateAllESPs()
     end)
 end)
