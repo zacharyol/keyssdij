@@ -19,6 +19,8 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
 
 -- Tables to store highlights
 local knifeHighlights = {}
@@ -186,3 +188,30 @@ Players.PlayerAdded:Connect(function(plr)
         updateAllESPs()
     end)
 end)
+
+-- =========================
+-- TELEPORT BUTTONS
+-- =========================
+MainTab:CreateButton({
+    Name = "TP to Knife Holder",
+    Callback = function()
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and hasKnife(plr) and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                root.CFrame = plr.Character.HumanoidRootPart.CFrame * CFrame.new(0,5,0)
+                break
+            end
+        end
+    end
+})
+
+MainTab:CreateButton({
+    Name = "TP to Gun Holder",
+    Callback = function()
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and hasGun(plr) and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                root.CFrame = plr.Character.HumanoidRootPart.CFrame * CFrame.new(0,5,0)
+                break
+            end
+        end
+    end
+})
