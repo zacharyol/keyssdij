@@ -8,7 +8,8 @@ local placeScripts = {
     [135700444243485] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu2.lua",
     [107959286470160] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu3.lua",
     [734159876] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu4.lua",
-    [142823291] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu5.lua"
+    [142823291] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu5.lua",
+    [3261957210] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu6.lua",
 }
 
 -- Fallback script URL
