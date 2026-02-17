@@ -10,7 +10,7 @@ local placeScripts = {
     [734159876] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu4.lua", --sharkbite
     [142823291] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu5.lua", --mm2
     [3261957210] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu6.lua", --Infinity Gauntlet | Thanos Simulator
-    [126509999114328] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu6.lua", --Infinity Gauntlet | Thanos Simulator
+    [126509999114328] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu6.lua", --99 nights in forest
 }
 
 -- Fallback script URL
