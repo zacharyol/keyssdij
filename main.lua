@@ -4,12 +4,13 @@ local HttpService = game:GetService("HttpService")
 
 -- Table mapping PlaceIds to script URLs
 local placeScripts = {
-    [155615604] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu.lua",
-    [135700444243485] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu2.lua",
-    [107959286470160] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu3.lua",
-    [734159876] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu4.lua",
-    [142823291] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu5.lua",
-    [3261957210] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu6.lua",
+    [155615604] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu.lua", --prisonlife
+    [135700444243485] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu2.lua", --jump to be admin
+    [107959286470160] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu3.lua", -- error
+    [734159876] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/menu4.lua", --sharkbite
+    [142823291] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu5.lua", --mm2
+    [3261957210] = "https://raw.githubusercontent.com/zacharyol/keyssdij/refs/heads/main/Menu6.lua", --Infinity Gauntlet | Thanos Simulator
+    
 }
 
 -- Fallback script URL
